@@ -7,13 +7,37 @@ st.set_page_config(page_title="Ambyar", page_icon="🎵", layout="wide")
 
 GENRES = ["Koplo", "Dangdut", "Pop Jawa"]
 MOODS = ["Patah hati", "Galau", "Nyesek", "Kangen", "Move on"]
-PREVIEW = st.secrets["PREVIEW_BASE_URL"].rstrip("/")    # bucket R2 publik (folder preview/)
-DOWNLOAD = st.secrets["DOWNLOAD_BASE_URL"].rstrip("/")  # Cloudflare Worker /download/:id
+# ===== ISI 4 BARIS INI SAJA (tidak perlu secrets.toml) =====
+# Aman ditaruh di kode publik: anon key dibatasi oleh RLS di Supabase.
+# JANGAN pernah menaruh service_role key di sini.
+SUPABASE_URL = "https://PROJECT-ID.supabase.co"
+SUPABASE_ANON_KEY = "ISI_DENGAN_ANON_KEY"
+PREVIEW_BASE_URL = ""   # bucket R2 publik (folder preview/), boleh kosong dulu
+DOWNLOAD_BASE_URL = ""  # Cloudflare Worker /download, boleh kosong dulu
+# ============================================================
+
+
+def cfg(name, default):
+    """Pakai nilai di atas; kalau Secrets Streamlit diisi, itu yang menang."""
+    try:
+        return st.secrets[name]
+    except Exception:
+        return default
+
+
+SUPABASE_URL = cfg("SUPABASE_URL", SUPABASE_URL)
+SUPABASE_ANON_KEY = cfg("SUPABASE_ANON_KEY", SUPABASE_ANON_KEY)
+PREVIEW = cfg("PREVIEW_BASE_URL", PREVIEW_BASE_URL).rstrip("/")
+DOWNLOAD = cfg("DOWNLOAD_BASE_URL", DOWNLOAD_BASE_URL).rstrip("/")
+
+if "PROJECT-ID" in SUPABASE_URL or "ISI_DENGAN" in SUPABASE_ANON_KEY:
+    st.error("Isi SUPABASE_URL dan SUPABASE_ANON_KEY di bagian atas app.py.")
+    st.stop()
 
 
 @st.cache_resource
 def db():
-    return create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_ANON_KEY"])
+    return create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 
 @st.cache_data(ttl=60)
@@ -38,11 +62,11 @@ def card(s):
         st.caption(f'{s["genre"]} · {s["mood"]}')
         st.subheader(s["title"])
         st.write(s["artist"])
-        if s.get("preview_key"):
+        if PREVIEW and s.get("preview_key"):
             st.audio(f'{PREVIEW}/{s["preview_key"]}')
         else:
             st.caption("Cuplikan belum tersedia")
-        if s["downloadable"]:
+        if s["downloadable"] and DOWNLOAD:
             st.link_button("Unduh gratis", f'{DOWNLOAD}/{s["id"]}')
         else:
             st.caption("Unduhan belum tersedia untuk lagu ini")
