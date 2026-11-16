@@ -1,0 +1,20 @@
+[
+  {
+    "id": "demo-koplo",
+    "title": "Contoh Koplo (nada demo)",
+    "artist": "Contoh",
+    "genre": "Koplo",
+    "mood": "Galau",
+    "file": "audio/demo-koplo.wav",
+    "downloadable": true
+  },
+  {
+    "id": "demo-dangdut",
+    "title": "Contoh Dangdut (nada demo)",
+    "artist": "Contoh",
+    "genre": "Dangdut",
+    "mood": "Move on",
+    "file": "audio/demo-dangdut.wav",
+    "downloadable": true
+  }
+]
